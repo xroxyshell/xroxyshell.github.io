@@ -6,144 +6,171 @@
     <title>XroxyShell | Pastebin</title>
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
     <style>
-        body { font-family: 'Roboto', sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; color: #333; }
-        header { background: #2b3e50; color: white; padding: 40px 20px; text-align: center; border-bottom: 4px solid #00d4ff; }
-        .container { max-width: 800px; margin: -30px auto 60px; padding: 0 20px; }
-        .card { background: #fff; border-radius: 4px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1 { font-weight: 300; margin: 0; font-size: 28px; }
-        label { display: block; margin-bottom: 8px; font-weight: 500; color: #666; font-size: 14px; }
+        :root { --primary: #00d4ff; --dark: #2b3e50; --bg: #f4f7f9; }
+        body { font-family: 'Roboto', sans-serif; background: var(--bg); margin: 0; color: #333; }
+        header { background: var(--dark); color: white; padding: 40px 20px; text-align: center; border-bottom: 4px solid var(--primary); }
+        .container { max-width: 900px; margin: -40px auto 60px; padding: 0 20px; }
+        .card { background: white; border-radius: 8px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
         
-        input[type="text"], textarea {
-            width: 100%; padding: 12px; border: 1px solid #dcdfe6; border-radius: 4px; 
-            font-size: 14px; margin-bottom: 20px; box-sizing: border-box; outline: none;
-        }
-        textarea { height: 180px; font-family: monospace; }
-        input[type="file"] { margin-bottom: 20px; font-size: 14px; }
+        h2 { margin-top: 0; font-weight: 500; color: var(--dark); border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; font-size: 13px; color: #666; }
         
-        button {
-            background-color: #00d4ff; color: white; border: none; padding: 14px 30px; 
-            border-radius: 4px; font-weight: 600; cursor: pointer; width: 100%; font-size: 16px;
-        }
-        button:hover { background-color: #00b8e6; }
+        textarea, input[type="text"] { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        textarea:focus { border-color: var(--primary); }
+        textarea { height: 120px; font-family: monospace; }
         
-        #resultArea { margin-top: 30px; display: none; background: #e7f9fd; border: 1px solid #b2ebf2; padding: 20px; border-radius: 4px; }
-        .success-text { color: #00796b; font-weight: bold; margin-bottom: 10px; display: block; }
-        .paste-link { background: #fff; padding: 10px; border: 1px solid #ddd; font-family: monospace; font-size: 13px; word-break: break-all; }
-        
-        .user-id-info { font-size: 11px; color: #999; margin-bottom: 15px; text-align: right; }
+        .btn { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; transition: 0.3s; }
+        .btn:hover { background: #00b8e6; transform: translateY(-1px); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
 
-        footer { text-align: center; color: #999; font-size: 12px; margin-bottom: 40px; }
+        /* History Table Style */
+        .history-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; gap: 15px; transition: 0.2s; }
+        .history-item:hover { background: #f9f9f9; }
+        .history-img { width: 60px; height: 60px; border-radius: 4px; object-fit: cover; background: #eee; border: 1px solid #ddd; }
+        .history-body { flex: 1; }
+        .history-body b { display: block; font-size: 14px; margin-bottom: 3px; }
+        .history-body span { font-size: 12px; color: #888; }
+        .btn-delete { background: #ff4757; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .btn-delete:hover { background: #ff6b81; }
+
+        .loader { text-align: center; padding: 20px; display: none; color: #888; font-style: italic; }
+        .token-badge { font-size: 10px; background: #eee; padding: 3px 8px; border-radius: 10px; float: right; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>XroxyShell Pastebin</h1>
-    <p>Professional Text & Image Storage</p>
+    <h1>XroxyShell Cloud Pastebin</h1>
+    <p>Professional Database via Telegram Infrastructure</p>
 </header>
 
 <div class="container">
     <div class="card">
-        <div class="user-id-info">Device Token: <span id="displayToken">Checking...</span></div>
+        <span class="token-badge" id="tokenDisplay">Loading Token...</span>
+        <h2>Create New Paste</h2>
         
-        <label>Paste Title</label>
-        <input type="text" id="title" placeholder="Enter a descriptive title...">
+        <label>Messages / Content</label>
+        <textarea id="messagesInput" placeholder="Write your code or message here..."></textarea>
         
-        <label>Your Content (Text)</label>
-        <textarea id="content" placeholder="Paste your code or text here..."></textarea>
+        <label>Image Attachment (Optional)</label>
+        <input type="file" id="fileInput" accept="image/*">
         
-        <label>Attach Image (Optional)</label>
-        <input type="file" id="imageInput" accept="image/*">
-        
-        <button onclick="createPaste()">SAVE TO PASTEBIN</button>
+        <button class="btn" id="uploadBtn" onclick="handleUpload()">SAVE TO CLOUD</button>
+    </div>
 
-        <div id="resultArea">
-            <span class="success-text">✔ Paste Successfully Created!</span>
-            <div class="paste-link" id="finalUrl"></div>
-            <p style="font-size: 12px; color: #666; margin-top: 10px;">Link ini tersimpan di Telegram Database Lu.</p>
-        </div>
+    <div class="card">
+        <h2>Your History</h2>
+        <div id="loader" class="loader">Refreshing data...</div>
+        <div id="historyList">
+            </div>
     </div>
 </div>
 
-<footer>&copy; 2026 XroxyShell Infrastructure. Secure & Professional.</footer>
-
 <script>
-    // --- UUID MANAGEMENT ---
-    const STORAGE_KEY = 'xroxy_user_uuid';
-
-    function getUserId() {
-        let uuid = localStorage.getItem(STORAGE_KEY);
-        if (!uuid) {
-            uuid = generateUUID();
-            localStorage.setItem(STORAGE_KEY, uuid);
-        }
-        document.getElementById('displayToken').innerText = uuid;
-        return uuid;
-    }
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTAcD-up-66NMIYyZ1ZG90AIzm7cmyfBYzWuc0hyQw_AQVh8f5GV2UBwn-Vt4bYe2bWA/exec";
+    const USER_TOKEN = localStorage.getItem('xroxy_token') || generateUUID();
+    
+    // Simpan token biar permanen di browser
+    localStorage.setItem('xroxy_token', USER_TOKEN);
+    document.getElementById('tokenDisplay').innerText = "Token: " + USER_TOKEN.substring(0, 8) + "...";
 
     function generateUUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+            const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
         });
     }
 
-    // Initialize UUID on Load
-    const userUuid = getUserId();
-
-    // --- PASTE LOGIC ---
-    async function createPaste() {
-        const title = document.getElementById('title').value;
-        const content = document.getElementById('content').value;
-        const file = document.getElementById('imageInput').files[0];
-        const btn = document.querySelector('button');
+    // --- FETCH DATA ---
+    async function loadHistory() {
+        const listDiv = document.getElementById('historyList');
+        const loader = document.getElementById('loader');
         
-        if (!content) return alert("Content cannot be empty!");
+        loader.style.display = "block";
+        listDiv.innerHTML = "";
+
+        try {
+            const response = await fetch(`${SCRIPT_URL}?token=${USER_TOKEN}&view`);
+            const data = await response.json();
+            const items = data[USER_TOKEN] || [];
+
+            if (items.length === 0) {
+                listDiv.innerHTML = "<p style='color:#999; text-align:center;'>No data found. Start uploading!</p>";
+            }
+
+            items.forEach(item => {
+                const html = `
+                    <div class="history-item">
+                        <img src="${item.img !== 'No Image' ? item.img : 'https://via.placeholder.com/60?text=Text'}" class="history-img">
+                        <div class="history-body">
+                            <b>${item.messages.substring(0, 50)}${item.messages.length > 50 ? '...' : ''}</b>
+                            <span>${item.datetime}</span>
+                        </div>
+                        <button class="btn-delete" onclick="handleDelete(${item.id})">DELETE</button>
+                    </div>
+                `;
+                listDiv.insertAdjacentHTML('beforeend', html);
+            });
+        } catch (e) {
+            listDiv.innerHTML = "<p style='color:red;'>Failed to load data. Make sure CORS is active.</p>";
+        } finally {
+            loader.style.display = "none";
+        }
+    }
+
+    // --- UPLOAD DATA ---
+    async function handleUpload() {
+        const msg = document.getElementById('messagesInput').value;
+        const file = document.getElementById('fileInput').files[0];
+        const btn = document.getElementById('uploadBtn');
+
+        if (!msg) return alert("Messages can't be empty!");
 
         btn.disabled = true;
         btn.innerText = "UPLOADING...";
 
         let base64Image = "";
         if (file) {
-            base64Image = await convertToBase64(file);
+            base64Image = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            });
         }
-
-        const payload = {
-            messages: content, // Disesuaikan dengan key di script backend lu
-            image: base64Image
-        };
 
         try {
-            // URL Script Lu
-            const scriptUrl = "https://script.google.com/macros/s/AKfycbwP7fTLVdWAz8YHLfXMn_ZWApYgmnPqIh1tUk6sF-cccawWfAm4K0fjzbZlSBTXRKECkg/exec";
-            
-            // Pake userUuid yang diambil dari localStorage
-            const response = await fetch(`${scriptUrl}?token=${userUuid}&upload`, {
-                method: "POST",
-                body: JSON.stringify(payload)
+            await fetch(`${SCRIPT_URL}?token=${USER_TOKEN}&upload`, {
+                method: 'POST',
+                body: JSON.stringify({ messages: msg, image: base64Image })
             });
-            
-            // Response dari Google Script
-            document.getElementById('resultArea').style.display = "block";
-            const finalLink = `${scriptUrl}?token=${userUuid}&view`;
-            document.getElementById('finalUrl').innerHTML = `<a href="${finalLink}" target="_blank">${finalLink}</a>`;
-            
-            btn.innerText = "SAVE TO PASTEBIN";
+            document.getElementById('messagesInput').value = "";
+            document.getElementById('fileInput').value = "";
+            alert("Success saved to Telegram!");
+            loadHistory(); // Refresh list
+        } catch (e) {
+            alert("Upload failed: " + e);
+        } finally {
             btn.disabled = false;
-        } catch (err) {
-            alert("Error: " + err.message);
-            btn.innerText = "SAVE TO PASTEBIN";
-            btn.disabled = false;
+            btn.innerText = "SAVE TO CLOUD";
         }
     }
 
-    function convertToBase64(file) {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-        });
+    // --- DELETE DATA ---
+    async function handleDelete(id) {
+        if (!confirm("Are you sure want to delete this item?")) return;
+
+        try {
+            const res = await fetch(`${SCRIPT_URL}?token=${USER_TOKEN}&id=${id}&delete`);
+            const result = await res.json();
+            alert(result.message);
+            loadHistory(); // Refresh list
+        } catch (e) {
+            alert("Delete failed!");
+        }
     }
+
+    // Start
+    loadHistory();
 </script>
 
 </body>
