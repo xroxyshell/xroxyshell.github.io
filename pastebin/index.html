@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XroxyShell | Pastebin</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; color: #333; }
+        header { background: #2b3e50; color: white; padding: 40px 20px; text-align: center; border-bottom: 4px solid #00d4ff; }
+        .container { max-width: 800px; margin: -30px auto 60px; padding: 0 20px; }
+        .card { background: #fff; border-radius: 4px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { font-weight: 300; margin: 0; font-size: 28px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; color: #666; font-size: 14px; }
+        
+        input[type="text"], textarea {
+            width: 100%; padding: 12px; border: 1px solid #dcdfe6; border-radius: 4px; 
+            font-size: 14px; margin-bottom: 20px; box-sizing: border-box; outline: none;
+        }
+        textarea { height: 180px; font-family: monospace; }
+        input[type="file"] { margin-bottom: 20px; font-size: 14px; }
+        
+        button {
+            background-color: #00d4ff; color: white; border: none; padding: 14px 30px; 
+            border-radius: 4px; font-weight: 600; cursor: pointer; width: 100%; font-size: 16px;
+        }
+        button:hover { background-color: #00b8e6; }
+        
+        #resultArea { margin-top: 30px; display: none; background: #e7f9fd; border: 1px solid #b2ebf2; padding: 20px; border-radius: 4px; }
+        .success-text { color: #00796b; font-weight: bold; margin-bottom: 10px; display: block; }
+        .paste-link { background: #fff; padding: 10px; border: 1px solid #ddd; font-family: monospace; font-size: 13px; word-break: break-all; }
+        
+        .user-id-info { font-size: 11px; color: #999; margin-bottom: 15px; text-align: right; }
+
+        footer { text-align: center; color: #999; font-size: 12px; margin-bottom: 40px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>XroxyShell Pastebin</h1>
+    <p>Professional Text & Image Storage</p>
+</header>
+
+<div class="container">
+    <div class="card">
+        <div class="user-id-info">Device Token: <span id="displayToken">Checking...</span></div>
+        
+        <label>Paste Title</label>
+        <input type="text" id="title" placeholder="Enter a descriptive title...">
+        
+        <label>Your Content (Text)</label>
+        <textarea id="content" placeholder="Paste your code or text here..."></textarea>
+        
+        <label>Attach Image (Optional)</label>
+        <input type="file" id="imageInput" accept="image/*">
+        
+        <button onclick="createPaste()">SAVE TO PASTEBIN</button>
+
+        <div id="resultArea">
+            <span class="success-text">✔ Paste Successfully Created!</span>
+            <div class="paste-link" id="finalUrl"></div>
+            <p style="font-size: 12px; color: #666; margin-top: 10px;">Link ini tersimpan di Telegram Database Lu.</p>
+        </div>
+    </div>
+</div>
+
+<footer>&copy; 2026 XroxyShell Infrastructure. Secure & Professional.</footer>
+
+<script>
+    // --- UUID MANAGEMENT ---
+    const STORAGE_KEY = 'xroxy_user_uuid';
+
+    function getUserId() {
+        let uuid = localStorage.getItem(STORAGE_KEY);
+        if (!uuid) {
+            uuid = generateUUID();
+            localStorage.setItem(STORAGE_KEY, uuid);
+        }
+        document.getElementById('displayToken').innerText = uuid;
+        return uuid;
+    }
+
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    // Initialize UUID on Load
+    const userUuid = getUserId();
+
+    // --- PASTE LOGIC ---
+    async function createPaste() {
+        const title = document.getElementById('title').value;
+        const content = document.getElementById('content').value;
+        const file = document.getElementById('imageInput').files[0];
+        const btn = document.querySelector('button');
+        
+        if (!content) return alert("Content cannot be empty!");
+
+        btn.disabled = true;
+        btn.innerText = "UPLOADING...";
+
+        let base64Image = "";
+        if (file) {
+            base64Image = await convertToBase64(file);
+        }
+
+        const payload = {
+            messages: content, // Disesuaikan dengan key di script backend lu
+            image: base64Image
+        };
+
+        try {
+            // URL Script Lu
+            const scriptUrl = "https://script.google.com/macros/s/AKfycbwP7fTLVdWAz8YHLfXMn_ZWApYgmnPqIh1tUk6sF-cccawWfAm4K0fjzbZlSBTXRKECkg/exec";
+            
+            // Pake userUuid yang diambil dari localStorage
+            const response = await fetch(`${scriptUrl}?token=${userUuid}&upload`, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+            
+            // Response dari Google Script
+            document.getElementById('resultArea').style.display = "block";
+            const finalLink = `${scriptUrl}?token=${userUuid}&view`;
+            document.getElementById('finalUrl').innerHTML = `<a href="${finalLink}" target="_blank">${finalLink}</a>`;
+            
+            btn.innerText = "SAVE TO PASTEBIN";
+            btn.disabled = false;
+        } catch (err) {
+            alert("Error: " + err.message);
+            btn.innerText = "SAVE TO PASTEBIN";
+            btn.disabled = false;
+        }
+    }
+
+    function convertToBase64(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+        });
+    }
+</script>
+
+</body>
+</html>
